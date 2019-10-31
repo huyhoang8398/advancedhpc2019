@@ -39,48 +39,49 @@ int main(int argc, char **argv) {
             timer.start();
             labwork.labwork1_OpenMP();
             labwork.saveOutputImage("labwork2-openmp-out.jpg");
+            printf("labwork 1 CPU OpenMP ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
             break;
-        case 2:
-            labwork.labwork2_GPU();
-            break;
-        case 3:
-            labwork.labwork3_GPU();
-            labwork.saveOutputImage("labwork3-gpu-out.jpg");
-            break;
-        case 4:
-            labwork.labwork4_GPU();
-            labwork.saveOutputImage("labwork4-gpu-out.jpg");
-            break;
-        case 5:
-            labwork.labwork5_CPU();
-            labwork.saveOutputImage("labwork5-cpu-out.jpg");
-            labwork.labwork5_GPU();
-            labwork.saveOutputImage("labwork5-gpu-out.jpg");
-            break;
-        case 6:
-            labwork.labwork6_GPU();
-            labwork.saveOutputImage("labwork6-gpu-out.jpg");
-            break;
-        case 7:
-            labwork.labwork7_GPU();
-            printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
-            labwork.saveOutputImage("labwork7-gpu-out.jpg");
-            break;
-        case 8:
-            labwork.labwork8_GPU();
-            printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
-            labwork.saveOutputImage("labwork8-gpu-out.jpg");
-            break;
-        case 9:
-            labwork.labwork9_GPU();
-            printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
-            labwork.saveOutputImage("labwork9-gpu-out.jpg");
-            break;
-        case 10:
-            labwork.labwork10_GPU();
-            printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
-            labwork.saveOutputImage("labwork10-gpu-out.jpg");
-            break;
+        //case 2:
+        //    labwork.labwork2_GPU();
+        //    break;
+        //case 3:
+        //    labwork.labwork3_GPU();
+        //    labwork.saveOutputImage("labwork3-gpu-out.jpg");
+        //    break;
+        //case 4:
+        //    labwork.labwork4_GPU();
+        //    labwork.saveOutputImage("labwork4-gpu-out.jpg");
+        //    break;
+        //case 5:
+        //    labwork.labwork5_CPU();
+        //    labwork.saveOutputImage("labwork5-cpu-out.jpg");
+        //    labwork.labwork5_GPU();
+        //    labwork.saveOutputImage("labwork5-gpu-out.jpg");
+        //    break;
+        //case 6:
+        //    labwork.labwork6_GPU();
+        //    labwork.saveOutputImage("labwork6-gpu-out.jpg");
+        //    break;
+        //case 7:
+        //    labwork.labwork7_GPU();
+        //    printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
+        //    labwork.saveOutputImage("labwork7-gpu-out.jpg");
+        //    break;
+        //case 8:
+        //    labwork.labwork8_GPU();
+        //    printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
+        //    labwork.saveOutputImage("labwork8-gpu-out.jpg");
+        //    break;
+        //case 9:
+        //    labwork.labwork9_GPU();
+        //    printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
+        //    labwork.saveOutputImage("labwork9-gpu-out.jpg");
+        //    break;
+        //case 10:
+        //    labwork.labwork10_GPU();
+        //    printf("[ALGO ONLY] labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
+        //    labwork.saveOutputImage("labwork10-gpu-out.jpg");
+        //    break;
     }
     printf("labwork %d ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
 }
@@ -110,6 +111,15 @@ void Labwork::labwork1_OpenMP() {
     int pixelCount = inputImage->width * inputImage->height;
     outputImage = static_cast<char *>(malloc(pixelCount * 3));
     // do something here
+    omp_set_num_threads(4);
+    #pragma omp parallel
+    for (int i = 0; i < pixelCount; i++) {
+      outputImage[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
+				    (int) inputImage->buffer[i * 3 + 2]) / 3);
+      outputImage[i * 3 + 1] = outputImage[i * 3];
+      outputImage[i * 3 + 2] = outputImage[i * 3];
+    }
+    
 }
 
 int getSPcores(cudaDeviceProp devProp) {
@@ -138,56 +148,56 @@ int getSPcores(cudaDeviceProp devProp) {
     return cores;
 }
 
-void Labwork::labwork2_GPU() {
-    int nDevices = 0;
-    // get all devices
-    cudaGetDeviceCount(&nDevices);
-    printf("Number total of GPU : %d\n\n", nDevices);
-    for (int i = 0; i < nDevices; i++){
-        // get informations from individual device
-        cudaDeviceProp prop;
-        cudaGetDeviceProperties(&prop, i);
-        // something more here
-    }
-
-}
-
-void Labwork::labwork3_GPU() {
-    // Calculate number of pixels
-
-    // Allocate CUDA memory    
-
-    // Copy CUDA Memory from CPU to GPU
-
-    // Processing
-
-    // Copy CUDA Memory from GPU to CPU
-
-    // Cleaning
-}
-
-void Labwork::labwork4_GPU() {
-}
-
-void Labwork::labwork5_GPU(bool shared) {
-}
-
-void Labwork::labwork6_GPU() {
-}
-
-void Labwork::labwork7_GPU() {
-}
-
-void Labwork::labwork8_GPU() {
-}
-
-void Labwork::labwork9_GPU() {
-
-}
-
-void Labwork::labwork10_GPU(){
-}
-
+//void Labwork::labwork2_GPU() {
+//    int nDevices = 0;
+//    // get all devices
+//    cudaGetDeviceCount(&nDevices);
+//    printf("Number total of GPU : %d\n\n", nDevices);
+//    for (int i = 0; i < nDevices; i++){
+//        // get informations from individual device
+//        cudaDeviceProp prop;
+//        cudaGetDeviceProperties(&prop, i);
+//        // something more here
+//    }
+//
+//}
+//
+//void Labwork::labwork3_GPU() {
+//    // Calculate number of pixels
+//
+//    // Allocate CUDA memory    
+//
+//    // Copy CUDA Memory from CPU to GPU
+//
+//    // Processing
+//
+//    // Copy CUDA Memory from GPU to CPU
+//
+//    // Cleaning
+//}
+//
+//void Labwork::labwork4_GPU() {
+//}
+//
+//void Labwork::labwork5_GPU(bool shared) {
+//}
+//
+//void Labwork::labwork6_GPU() {
+//}
+//
+//void Labwork::labwork7_GPU() {
+//}
+//
+//void Labwork::labwork8_GPU() {
+//}
+//
+//void Labwork::labwork9_GPU() {
+//
+//}
+//
+//void Labwork::labwork10_GPU(){
+//}
+//
 
 
 
