@@ -113,6 +113,7 @@ void Labwork::labwork1_OpenMP() {
     // do something here
     omp_set_num_threads(4);
     #pragma omp parallel
+    printf("%d\n", omp_get_num_threads());
     for (int i = 0; i < pixelCount; i++) {
       outputImage[i * 3] = (char) (((int) inputImage->buffer[i * 3] + (int) inputImage->buffer[i * 3 + 1] +
 				    (int) inputImage->buffer[i * 3 + 2]) / 3);
