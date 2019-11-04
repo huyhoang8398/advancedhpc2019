@@ -41,9 +41,9 @@ int main(int argc, char **argv) {
             labwork.saveOutputImage("labwork2-openmp-out.jpg");
             printf("labwork 1 CPU OpenMP ellapsed %.1fms\n", lwNum, timer.getElapsedTimeInMilliSec());
             break;
-        //case 2:
-        //    labwork.labwork2_GPU();
-        //    break;
+        case 2:
+            labwork.labwork2_GPU();
+            break;
         //case 3:
         //    labwork.labwork3_GPU();
         //    labwork.saveOutputImage("labwork3-gpu-out.jpg");
@@ -149,19 +149,32 @@ int getSPcores(cudaDeviceProp devProp) {
     return cores;
 }
 
-//void Labwork::labwork2_GPU() {
-//    int nDevices = 0;
-//    // get all devices
-//    cudaGetDeviceCount(&nDevices);
-//    printf("Number total of GPU : %d\n\n", nDevices);
-//    for (int i = 0; i < nDevices; i++){
-//        // get informations from individual device
-//        cudaDeviceProp prop;
-//        cudaGetDeviceProperties(&prop, i);
-//        // something more here
-//    }
-//
-//}
+void Labwork::labwork2_GPU() {
+    int nDevices;
+    if (cudaGetDeviceCount(&nDevices) != cudaSuccess) {
+        fprintf(stderr, "cannot get number of devices\n");
+        return;
+    }
+    printf("%d devices found\n", nDevices);
+    for (int i = 0; i < nDevices; i++) {
+        cudaDeviceProp prop;
+        if (cudaGetDeviceProperties(&prop, i) != cudaSuccess) {
+            fprintf(stderr, "cannot get device props\n");
+            return;
+        }
+        printf("Information for device %d:\n", i);
+        printf("Device name: %s\n", prop.name);
+        int cores = getSPcores(prop);
+        printf("Core count: %d\n", cores);
+        printf("Core clock rate: %d kHz\n", prop.clockRate);
+        printf("Multiprocessor count: %d\n", prop.multiProcessorCount);
+        printf("Warp size: %d threads\n", prop.warpSize);
+        printf("Memory clock rate: %d kHz\n", prop.memoryClockRate);
+        printf("Memory bus width: %d bits\n", prop.memoryBusWidth);
+        printf("\n");
+}
+
+}
 //
 //void Labwork::labwork3_GPU() {
 //    // Calculate number of pixels
