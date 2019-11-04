@@ -219,6 +219,8 @@ void Labwork::labwork3_GPU() {
     // Cleaning
     cudaFree(inputCudaBuffer);
     cudaFree(outputCudaBuffer);
+
+    return 1;
 }
 
 __global__ void labwork3(uchar3 * __restrict__ input, uchar3 * __restrict__ output, long long pixelCount) {
