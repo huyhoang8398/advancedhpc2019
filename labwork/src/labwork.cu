@@ -241,7 +241,7 @@ __global__ void grayscaleVer2D(uchar3* input, uchar3* output, int imageWidth, in
 }
 
 void Labwork::labwork4_GPU() {
-    int pixelCount = inputImage->imageWidth * inputImage->imageHeight;
+    int pixelCount = inputImage->width * inputImage->height;
     outputImage = static_cast<char*>(malloc(pixelCount * 3));
     uchar3* dev_input;
     uchar3*	dev_output;
@@ -251,12 +251,12 @@ void Labwork::labwork4_GPU() {
     // set value for block and grid
     int b_x = 32;
     int b_y = 32;
-    int d_x = (int)(inputImage->imageWidth / b_x) + 1;
-    int d_y = (int)(inputImage->imageHeight / b_y) + 1;
+    int d_x = (int)(inputImage->width / b_x - 1) / b_x;
+    int d_y = (int)(inputImage->height / b_y - 1) / b_y;
     // execute processing
     dim3 blockSize = dim3(b_x, b_y);
     dim3 gridSize = dim3(d_x, d_y);
-    grayscaleVer2D<<<gridSize, blockSize>>>(dev_input, dev_output, inputImage->imageWidth, inputImage->imageHeight);
+    grayscaleVer2D<<<gridSize, blockSize>>>(dev_input, dev_output, inputImage->width, inputImage->height);
     cudaMemcpy(outputImage, dev_output, pixelCount * sizeof(uchar3), cudaMemcpyDeviceToHost);
     cudaFree(dev_input);
     cudaFree(dev_output);
