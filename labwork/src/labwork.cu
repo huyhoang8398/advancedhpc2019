@@ -50,10 +50,10 @@ int main(int argc, char **argv) {
         //         printf("labwork 3 elapsed %.1fms\n", timer.getElapsedTimeInMilliSec());
         //         break;
         //     }
-        //case 4:
-        //    labwork.labwork4_GPU();
-        //    labwork.saveOutputImage("labwork4-gpu-out.jpg");
-        //    break;
+        case 4:
+            labwork.labwork4_GPU();
+            labwork.saveOutputImage("labwork4-gpu-out.jpg");
+            break;
         //case 5:
         //    labwork.labwork5_CPU();
         //    labwork.saveOutputImage("labwork5-cpu-out.jpg");
@@ -209,6 +209,7 @@ void Labwork::labwork2_GPU() {
 //         fprintf(stderr, "input buffer copy error\n");
 //         return 0;
 //     }
+        // processing
 //     for (int j = 0; j < 100; j++) {
 //         labwork3<<<numBlocks, blockSize>>>(inputCudaBuffer, outputCudaBuffer, pixelCount);
 //     }
@@ -223,16 +224,44 @@ void Labwork::labwork2_GPU() {
 //     return 1;
 // }
 
-// __global__ void labwork3(uchar3 * __restrict__ input, uchar3 * __restrict__ output, long long pixelCount) {
-//     long long i = threadIdx.x + blockIdx.x * blockDim.x;
-//     if (i < pixelCount) {
-//         output[i].x = (char)(((int)input[i].x + input[i].y + input[i].z) / 3);
-//         output[i].y = output[i].z = output[i].x;
-//     }
-// }
-//
-//void Labwork::labwork4_GPU() {
-//}
+__global__ void labwork3(uchar3 * __restrict__ input, uchar3 * __restrict__ output, long long pixelCount) {
+    long long i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < pixelCount) {
+        output[i].x = (char)(((int)input[i].x + input[i].y + input[i].z) / 3);
+        output[i].y = output[i].z = output[i].x;
+    }
+}
+__global__ void grayscaleConvert2D(char* input, char* output, int imagePixelCount, int imageWidth){
+    int row = threadIdx.y + blockIdx.y * blockDim.y;
+    int i = row * imageWidth + threadIdx.x +blockIdx.x * blockDim.x;
+    if(i < imagePixelCount){
+        char g = (char) (((int) input[i * 3] + (int) input[i * 3 + 1] +
+                                      (int) input[i * 3 + 2]) / 3);
+        output[i * 3] =  output[i * 3 + 1] = output[i * 3 + 2] = g;
+    }
+}
+
+void Labwork::labwork4_GPU() {
+    int pixelCount = inputImage->width * inputImage->height;
+    outputImage = static_cast<char*>(malloc(pixelCount * 3));
+	uchar3* inputCudaBuffer;
+    uchar3*	outputCudaBuffer;
+	cudaMalloc(&inputCudaBuffer, pixelCount * sizeof(uchar3));
+	cudaMalloc(&outputCudaBuffer, pixelCount * sizeof(uchar3));
+	cudaMemcpy(inputCudaBuffer, inputImage->buffer, pixelCount * sizeof(uchar3), cudaMemcpyHostToDevice);
+	// set value for block and grid
+	int b_x = 32;
+	int b_y = 32;
+	int d_x = (int)(inputImage->width / b_x) + 1;
+	int d_y = (int)(inputImage->height / b_y) + 1;
+	// execute processing
+	dim3 blockSize = dim3(b_x, b_y);
+	dim3 gridSize = dim3(d_x, d_y);
+	grayscaleConvert2D<<<gridSize, blockSize>>>(inputCudaBuffer, outputCudaBuffer, inputImage->width, inputImage->height);
+	cudaMemcpy(outputImage, outputCudaBuffer, pixelCount * sizeof(uchar3), cudaMemcpyDeviceToHost);
+	cudaFree(inputCudaBuffer);
+	cudaFree(outputCudaBuffer);
+}
 //
 //void Labwork::labwork5_GPU(bool shared) {
 //}
