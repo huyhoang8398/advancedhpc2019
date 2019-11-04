@@ -177,7 +177,7 @@ void Labwork::labwork2_GPU() {
 
 }
 //
-void Labwork::labwork3_GPU() {
+int Labwork::labwork3_GPU() {
     // Calculate number of pixels
     long long pixelCount = inputImage->width * inputImage->height;
     char *blockSizeEnv = getenv("LW3_CUDA_BLOCK_SIZE");
