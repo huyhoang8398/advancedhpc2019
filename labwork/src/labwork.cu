@@ -44,15 +44,16 @@ int main(int argc, char **argv) {
         case 2:
             labwork.labwork2_GPU();
             break;
-        case 3:
-            labwork.labwork3_GPU();
-            labwork.saveOutputImage("labwork3-gpu-out.jpg");
-            printf("labwork 3 elapsed %.1fms\n", timer.getElapsedTimeInMilliSec());
+        // case 3:
+        //     if (labwork.labwork3_GPU()) {
+        //         labwork.saveOutputImage("labwork3-gpu-out.jpg");
+        //         printf("labwork 3 elapsed %.1fms\n", timer.getElapsedTimeInMilliSec());
+        //         break;
+        //     }
+        case 4:
+            labwork.labwork4_GPU();
+            labwork.saveOutputImage("labwork4-gpu-out.jpg");
             break;
-        //case 4:
-        //    labwork.labwork4_GPU();
-        //    labwork.saveOutputImage("labwork4-gpu-out.jpg");
-        //    break;
         //case 5:
         //    labwork.labwork5_CPU();
         //    labwork.saveOutputImage("labwork5-cpu-out.jpg");
@@ -173,66 +174,93 @@ void Labwork::labwork2_GPU() {
         printf("Memory clock rate: %d kHz\n", prop.memoryClockRate);
         printf("Memory bus width: %d bits\n", prop.memoryBusWidth);
         printf("\n");
-}
-
-}
-//
-int Labwork::labwork3_GPU() {
-    // Calculate number of pixels
-    long long pixelCount = inputImage->width * inputImage->height;
-    char *blockSizeEnv = getenv("LW3_CUDA_BLOCK_SIZE");
-    if (!blockSizeEnv) {
-        fprintf(stderr, "invalid block size\n");
-        return 0;
-    }
-
-    // Allocate CUDA memory    
-    int blockSize = atoi(blockSizeEnv);
-    long long numBlocks = pixelCount / blockSize + 1;
-
-    // Copy CUDA Memory from CPU to GPU
-    // Processing
-    // Copy CUDA Memory from GPU to CPU
-    uchar3 *inputCudaBuffer;
-    if (cudaMalloc(&inputCudaBuffer, pixelCount * sizeof(uchar3)) != cudaSuccess) {
-        fprintf(stderr, "memory allocation error\n");
-        return 0;
-    }
-    uchar3 *outputCudaBuffer;
-    if (cudaMalloc(&outputCudaBuffer, pixelCount * sizeof(uchar3)) != cudaSuccess) {
-        fprintf(stderr, "memory allocation error\n");
-        return 0;
-    }
-
-    outputImage = static_cast<char *>(malloc(pixelCount * 3));
-    if (cudaMemcpy(inputCudaBuffer, inputImage->buffer, pixelCount * sizeof(uchar3), cudaMemcpyHostToDevice) != cudaSuccess) {
-        fprintf(stderr, "input buffer copy error\n");
-        return 0;
-    }
-    for (int j = 0; j < 100; j++) {
-        labwork3<<<numBlocks, blockSize>>>(inputCudaBuffer, outputCudaBuffer, pixelCount);
-    }
-    if (cudaMemcpy(outputImage, outputCudaBuffer, pixelCount * sizeof(uchar3), cudaMemcpyDeviceToHost) != cudaSuccess) {
-        fprintf(stderr, "output buffer copy error\n");
-        return 0;
-    }
-    // Cleaning
-    cudaFree(inputCudaBuffer);
-    cudaFree(outputCudaBuffer);
-
-    return 1;
-}
-
-__global__ void labwork3(uchar3 * __restrict__ input, uchar3 * __restrict__ output, long long pixelCount) {
-    long long i = threadIdx.x + blockIdx.x * blockDim.x;
-    if (i < pixelCount) {
-        output[i].x = (char)(((int)input[i].x + input[i].y + input[i].z) / 3);
-        output[i].y = output[i].z = output[i].x;
     }
 }
 //
-//void Labwork::labwork4_GPU() {
-//}
+// int Labwork::labwork3_GPU() {
+//     // Calculate number of pixels
+//     long long pixelCount = inputImage->width * inputImage->height;
+//     char *blockSizeEnv = getenv("LW3_CUDA_BLOCK_SIZE");
+//     if (!blockSizeEnv) {
+//         fprintf(stderr, "invalid block size\n");
+//         return 0;
+//     }
+
+//     // Allocate CUDA memory    
+//     int blockSize = atoi(blockSizeEnv);
+//     long long numBlocks = pixelCount / blockSize + 1;
+
+//     // Copy CUDA Memory from CPU to GPU
+//     // Processing
+//     // Copy CUDA Memory from GPU to CPU
+//     uchar3 *inputCudaBuffer;
+//     if (cudaMalloc(&inputCudaBuffer, pixelCount * sizeof(uchar3)) != cudaSuccess) {
+//         fprintf(stderr, "memory allocation error\n");
+//         return 0;
+//     }
+//     uchar3 *outputCudaBuffer;
+//     if (cudaMalloc(&outputCudaBuffer, pixelCount * sizeof(uchar3)) != cudaSuccess) {
+//         fprintf(stderr, "memory allocation error\n");
+//         return 0;
+//     }
+
+//     outputImage = static_cast<char *>(malloc(pixelCount * 3));
+//     if (cudaMemcpy(inputCudaBuffer, inputImage->buffer, pixelCount * sizeof(uchar3), cudaMemcpyHostToDevice) != cudaSuccess) {
+//         fprintf(stderr, "input buffer copy error\n");
+//         return 0;
+//     }
+        // processing
+//     for (int j = 0; j < 100; j++) {
+//         labwork3<<<numBlocks, blockSize>>>(inputCudaBuffer, outputCudaBuffer, pixelCount);
+//     }
+//     if (cudaMemcpy(outputImage, outputCudaBuffer, pixelCount * sizeof(uchar3), cudaMemcpyDeviceToHost) != cudaSuccess) {
+//         fprintf(stderr, "output buffer copy error\n");
+//         return 0;
+//     }
+//     // Cleaning
+//     cudaFree(inputCudaBuffer);
+//     cudaFree(outputCudaBuffer);
+
+//     return 1;
+// }
+
+// __global__ void labwork3(uchar3 * __restrict__ input, uchar3 * __restrict__ output, long long pixelCount) {
+//     long long i = threadIdx.x + blockIdx.x * blockDim.x;
+//     if (i < pixelCount) {
+//         output[i].x = (char)(((int)input[i].x + input[i].y + input[i].z) / 3);
+//         output[i].y = output[i].z = output[i].x;
+//     }
+// }
+__global__ void grayscaleVer2D(uchar3* input, uchar3* output, int imageWidth, int imageHeight){
+	int tid_x = threadIdx.x + blockIdx.x * blockDim.x;
+	int tid_y = threadIdx.y + blockIdx.y * blockDim.y;
+	if(tid_x > imageWidth || tid_y > imageHeight) return;
+	int tid = (int)(tid_x + tid_y * imageWidth);
+	output[tid].x = (input[tid].x + input[tid].y + input[tid].z) / 3;
+	output[tid].z = output[tid].y = output[tid].x;
+}
+
+void Labwork::labwork4_GPU() {
+    int pixelCount = inputImage->width * inputImage->height;
+    outputImage = static_cast<char*>(malloc(pixelCount * 3));
+    uchar3* dev_input;
+    uchar3*	dev_output;
+    cudaMalloc(&dev_input, pixelCount * sizeof(uchar3));
+    cudaMalloc(&dev_output, pixelCount * sizeof(uchar3));
+    cudaMemcpy(dev_input, inputImage->buffer, pixelCount * sizeof(uchar3), cudaMemcpyHostToDevice);
+    // set value for block and grid
+    int b_x = 32;
+    int b_y = 32;
+    int d_x = (int)(inputImage->width +  b_x - 1) / b_x;
+    int d_y = (int)(inputImage->height + b_y - 1) / b_y;
+    // execute processing
+    dim3 blockSize = dim3(b_x, b_y);
+    dim3 gridSize = dim3(d_x, d_y);
+    grayscaleVer2D<<<gridSize, blockSize>>>(dev_input, dev_output, inputImage->width, inputImage->height);
+    cudaMemcpy(outputImage, dev_output, pixelCount * sizeof(uchar3), cudaMemcpyDeviceToHost);
+    cudaFree(dev_input);
+    cudaFree(dev_output);
+}
 //
 //void Labwork::labwork5_GPU(bool shared) {
 //}
