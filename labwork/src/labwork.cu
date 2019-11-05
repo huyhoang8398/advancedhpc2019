@@ -251,8 +251,8 @@ void Labwork::labwork4_GPU() {
     // set value for block and grid
     int b_x = 32;
     int b_y = 32;
-    int d_x = (int)(inputImage->width / b_x - 1) / b_x;
-    int d_y = (int)(inputImage->height / b_y - 1) / b_y;
+    int d_x = (int)(inputImage->width +  b_x - 1) / b_x;
+    int d_y = (int)(inputImage->height + b_y - 1) / b_y;
     // execute processing
     dim3 blockSize = dim3(b_x, b_y);
     dim3 gridSize = dim3(d_x, d_y);
